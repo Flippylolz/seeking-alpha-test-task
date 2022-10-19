@@ -22,6 +22,12 @@ schedule = {
 }
 
 class FbTimeParser
+  class << self
+    def call(...)
+      new(...).call
+    end
+  end
+
   def initialize(schedule)
     @schedule = schedule
   end
@@ -35,6 +41,8 @@ class FbTimeParser
 
     format_response(grouped_data)
   end
+
+  private
 
   def split_keys_by_day
     @schedule.map { |k, v| [k.to_s.split("_"), v] }.to_h
@@ -64,6 +72,6 @@ class FbTimeParser
   end
 end
 
-result = FbTimeParser.new(schedule).call
+result = FbTimeParser.(schedule)
 
 p result
