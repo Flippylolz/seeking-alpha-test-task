@@ -22,6 +22,9 @@ schedule = {
 }
 
 class FbTimeParser
+  DAYS_OF_WEEK = %w[Mon Tue Wed Thu Fri Sat Sun]
+  CLOSED = "Closed"
+  
   class << self
     def call(...)
       new(...).call
@@ -32,43 +35,55 @@ class FbTimeParser
     @schedule = schedule
   end
 
-  def call
-    splitted_keys = split_keys_by_day
-    grouped_by_day = group_by_day(splitted_keys)
-    time_periods = time_periods(grouped_by_day)
+  def parse_hours(folded: false)
+    hours = folded ? [] : Array.new(7, [])
 
-    grouped_data = group_days_and_time(time_periods)
+    DAYS_OF_WEEK.each_with_index do |day_name, day_index|
+      day_hours = get_day_hours(day_name, day_index, folded)
+      hours[day_index] = day_hours unless folded
+      puts format_hours(day_name, day_hours)
+    end
 
-    format_response(grouped_data)
+    return hours if folded
   end
 
   private
 
-  def split_keys_by_day
-    @schedule.map { |k, v| [k.to_s.split("_"), v] }.to_h
-  end
+  def get_day_hours(day_name, day_index, folded)
+    start_key = "#{day_name.downcase}_1_open".to_sym
+    end_key = "#{day_name.downcase}_1_close".to_sym
+    second_start_key = "#{day_name.downcase}_2_open".to_sym
+    second_end_key = "#{day_name.downcase}_2_close".to_sym
 
-  def group_by_day(splitted_keys)
-    splitted_keys.group_by { |k, _ | k.first }
-  end
-
-  def time_periods(grouped_by_day)
-    grouped_by_day.each do |_, value|
-      value.each do |a|
-        a.shift
+    if @schedule.key?(start_key) && @schedule.key?(end_key)
+      start_time = Time.parse(@schedule[start_key])
+      end_time = Time.parse(@schedule[end_key])
+      if @schedule.key?(second_start_key) && @schedule.key?(second_end_key)
+        second_start_time = Time.parse(@schedule[second_start_key])
+        second_end_time = Time.parse(@schedule[second_end_key])
+        return [[start_time, end_time], [second_start_time, second_end_time]]
+      else
+        return [[start_time, end_time]]
       end
-    end.each_value(&:flatten!)
+    else
+      return CLOSED
+    end
   end
 
-  def group_days_and_time(time_periods)
-    time_periods.group_by(&:last)
-                .each { |_, v| v.map!(&:first) }
-                .invert
+  def format_hours(day_name, day_hours)
+    if day_hours == CLOSED
+      "#{day_name}: #{CLOSED}"
+    else
+      hours_str = day_hours.map { |range| format_range(range) }.join(", ")
+      "#{day_name}: #{hours_str}"
+    end
   end
 
-  def format_response(data)
-    data.transform_keys! { |key| key.map(&:capitalize).join('-') }
-    data.transform_values! { |value| value.each_slice(2).map { |time| "#{time.first} - #{time.last}" }.join(', ') }
+  def format_range(range)
+    start_time, end_time = range
+    start_str = start_time.strftime("%H:%M")
+    end_str = end_time.strftime("%H:%M")
+    "#{start_str}-#{end_str}"
   end
 end
 
