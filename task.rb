@@ -2,6 +2,8 @@
 # # Display working hours in folded/unfolded way.
 # # Folded meaning that if the opening-closing hours are the same,
 # # then you write Mon-Thu same hour instead of writing opening hours for each day
+
+require 'time'
 schedule = {
   "mon_1_open":  "09:00",
   "mon_1_close": "13:00",
@@ -27,7 +29,7 @@ class FbTimeParser
   
   class << self
     def call(...)
-      new(...).call
+      new(...).parse_hours
     end
   end
 
@@ -35,21 +37,20 @@ class FbTimeParser
     @schedule = schedule
   end
 
-  def parse_hours(folded: false)
-    hours = folded ? [] : Array.new(7, [])
-
+  def parse_hours
+    hours = []
+    result = []
     DAYS_OF_WEEK.each_with_index do |day_name, day_index|
-      day_hours = get_day_hours(day_name, day_index, folded)
-      hours[day_index] = day_hours unless folded
-      puts format_hours(day_name, day_hours)
+      day_hours = get_day_hours(day_name, day_index)
+      result << format_hours(day_name, day_hours)
     end
 
-    return hours if folded
+    result
   end
 
   private
 
-  def get_day_hours(day_name, day_index, folded)
+  def get_day_hours(day_name, day_index)
     start_key = "#{day_name.downcase}_1_open".to_sym
     end_key = "#{day_name.downcase}_1_close".to_sym
     second_start_key = "#{day_name.downcase}_2_open".to_sym
@@ -89,4 +90,4 @@ end
 
 result = FbTimeParser.(schedule)
 
-p result
+puts result
