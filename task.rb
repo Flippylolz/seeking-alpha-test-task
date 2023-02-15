@@ -4,28 +4,10 @@
 # # then you write Mon-Thu same hour instead of writing opening hours for each day
 
 require 'time'
-schedule = {
-  "mon_1_open":  "09:00",
-  "mon_1_close": "13:00",
-  "tue_1_open":  "09:00",
-  "tue_1_close": "13:00",
-  "wed_1_open":  "16:00",
-  "wed_1_close": "20:00",
-  "thu_1_open":  "09:00",
-  "thu_1_close": "13:00",
-  "fri_1_open":  "09:00",
-  "fri_1_close": "13:00",
-  "sat_1_open":  "09:00",
-  "sat_1_close": "14:00",
-  "mon_2_open":  "16:00",
-  "mon_2_close": "20:00",
-  "tue_2_open":  "16:00",
-  "tue_2_close": "20:00"
-}
 
 class FbTimeParser
-  DAYS_OF_WEEK = %w[Mon Tue Wed Thu Fri Sat Sun]
-  CLOSED = "Closed"
+  DAYS_OF_WEEK = %w[Mon Tue Wed Thu Fri Sat Sun].freeze
+  CLOSED = "Closed".freeze
   
   class << self
     def call(...)
@@ -62,12 +44,12 @@ class FbTimeParser
       if @schedule.key?(second_start_key) && @schedule.key?(second_end_key)
         second_start_time = Time.parse(@schedule[second_start_key])
         second_end_time = Time.parse(@schedule[second_end_key])
-        return [[start_time, end_time], [second_start_time, second_end_time]]
+        [[start_time, end_time], [second_start_time, second_end_time]]
       else
-        return [[start_time, end_time]]
+        [[start_time, end_time]]
       end
     else
-      return CLOSED
+      CLOSED
     end
   end
 
@@ -88,6 +70,24 @@ class FbTimeParser
   end
 end
 
+schedule = {
+  "mon_1_open":  "09:00",
+  "mon_1_close": "13:00",
+  "tue_1_open":  "09:00",
+  "tue_1_close": "13:00",
+  "wed_1_open":  "16:00",
+  "wed_1_close": "20:00",
+  "thu_1_open":  "09:00",
+  "thu_1_close": "13:00",
+  "fri_1_open":  "09:00",
+  "fri_1_close": "13:00",
+  "sat_1_open":  "09:00",
+  "sat_1_close": "14:00",
+  "mon_2_open":  "16:00",
+  "mon_2_close": "20:00",
+  "tue_2_open":  "16:00",
+  "tue_2_close": "20:00"
+}
 result = FbTimeParser.(schedule)
 
 puts result
